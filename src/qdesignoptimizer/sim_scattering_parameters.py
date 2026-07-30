@@ -4,6 +4,7 @@ from typing import Callable, List, Optional
 
 import numpy as np
 from pyaedt import Hfss
+from pyEPR.ansys import HfssSetup
 from qiskit_metal.analyses.simulation.scattering_impedance import ScatteringImpedanceSim
 from qiskit_metal.designs.design_base import QDesign
 from resonator_tools import circuit
@@ -73,6 +74,7 @@ class ScatteringParametersStudy:
     def simulate_scattering_parameters(
         self,
         design: QDesign,
+        eigenmode_setup: HfssSetup,
         hfss_design_name: str = "Scattering_Study",
         center_frequency: float = 5,
     ):
@@ -81,6 +83,7 @@ class ScatteringParametersStudy:
         Runs the HFSS simulation for the specified design and returns the results.
         Args:
             design (QDesign): The Qiskit Metal design object to simulate.
+            eigenmode_setup (HfssSetup) : eigenmode solution setup pointer to link mesh to
             hfss_design_name (str): Name of the HFSS design. Defaults to "Scattering_Study".
             center_frequency (float): Center frequency for the simulation in GHz. Defaults to 5 GHz.
 
@@ -135,7 +138,7 @@ class ScatteringParametersStudy:
             setup.delete_sweep("Sweep")
         except:
             pass
-
+        setup.setup_link(eigenmode_setup)
         scattering_analysis_renderer.add_sweep(
             setup_name="Setup_QDO",
             name="Sweep",
@@ -159,11 +162,12 @@ class ScatteringParametersStudy:
         self.Sij = scattering_analysis_renderer.get_params(Sij)
         return self.Sij
 
-    def fit_resonator_kappa(self, ports):
+    def fit_resonator(self, ports, r_freq):
         """Fit the resonator kappa using the scattering parameters.
         This method fits the resonator kappa using the scattering parameters obtained from the simulation.
         Args:
             ports (list): List of ports to use for fitting.
+            r_freq (float) : resonant frequency to look for in GHz. Is used to assess is the fit succeeded or failed
         Returns:
             float: The fitted kappa value.
         """
@@ -179,18 +183,19 @@ class ScatteringParametersStudy:
         frequency = self.Sij[-1].index
         data = self.Sij[-1][Sij].values
 
-        # Implementing a failsafe to prevent fitting when no resonant frequency was found
-
-        if np.min(np.abs(data)) > 0.5:
-            return None
-
         port = circuit.reflection_port()
         port.add_data(frequency, data)
         port.autofit()
         fit_result = port.fitresults
+
+        # Implementing a failsafe to prevent fitting when no resonant frequency was found
+
+        if np.abs(fit_result["fr"] - r_freq) > self.bandwidth / 2:
+            return None
+
         print("Scattering analysis" + str(fit_result))
-        kappa = fit_result["fr"] * 1e9 / fit_result["Ql"]
-        return kappa
+
+        return fit_result
 
     def plot(self, title="", Sij=[]):
         """Plot the scattering parameters.

@@ -749,13 +749,17 @@ class DesignAnalysis:
                 )
                 Sij = scattering_study.simulate_scattering_parameters(
                     design=self.design,
+                    eigenmode_setup=self.setup,
                     hfss_design_name=self.mini_study.design_name + "_scattering",
                     center_frequency=self.eig_result["Freq. (GHz)"][mode_index],
                 )
-                kappa = scattering_study.fit_resonator_kappa(scattering_study.port_list)
+                fit_result = scattering_study.fit_resonator(
+                    scattering_study.port_list,
+                    self.eig_result["Freq. (GHz)"][mode_index],
+                )
 
                 # Failsafe for scattering analysis failcase
-                if kappa == None:
+                if fit_result == None:
                     log.warning(
                         "Scattering analysis did not find resonant frequency. Kappa optimization will be based on eigenmode simulation this round"
                     )
@@ -770,6 +774,7 @@ class DesignAnalysis:
                         f"Eigenmode study for {scattering_study.component_of_interest} yields kappa =  {kappa} Hz"
                     )
                 else:
+                    kappa = fit_result["fr"] * 1e9 / fit_result["Ql"]
                     iteration_result["scattering_parameters_kappa"].append(
                         (param(scattering_study.component_of_interest, KAPPA), kappa)
                     )
