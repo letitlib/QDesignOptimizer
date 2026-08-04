@@ -150,10 +150,10 @@ class ScatteringParametersStudy:
 
         if len(self.port_list) == 1:
             Sij = ["S11"]
-            port = circuit.reflection_port()
+
         elif len(self.port_list) == 2:
             Sij = ["S11", "S21", "S12", "S22"]
-            port = circuit.notch_port()
+
         else:
             raise ValueError(
                 "Invalid number of ports. Only 1 or 2 ports are supported."
@@ -173,8 +173,10 @@ class ScatteringParametersStudy:
         """
         if len(ports) == 1:
             Sij = "S11"
+            port = circuit.reflection_port()
         elif len(ports) == 2:
             Sij = "S21"
+            port = circuit.notch_port()
         else:
             raise ValueError(
                 "Invalid number of ports. Only 1 or 2 ports are supported."
@@ -183,7 +185,6 @@ class ScatteringParametersStudy:
         frequency = self.Sij[-1].index
         data = self.Sij[-1][Sij].values
 
-        port = circuit.reflection_port()
         port.add_data(frequency, data)
         port.autofit()
         fit_result = port.fitresults
