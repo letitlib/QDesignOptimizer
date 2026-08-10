@@ -74,7 +74,7 @@ class ScatteringParametersStudy:
     def simulate_scattering_parameters(
         self,
         design: QDesign,
-        eigenmode_setup: HfssSetup,
+        eigenmode_setup: HfssSetup = None,
         hfss_design_name: str = "Scattering_Study",
         center_frequency: float = 5,
     ):
@@ -84,7 +84,7 @@ class ScatteringParametersStudy:
         Args:
             design (QDesign): The Qiskit Metal design object to simulate.
             eigenmode_setup (HfssSetup) : eigenmode solution setup pointer to link mesh to
-            hfss_design_name (str): Name of the HFSS design. Defaults to "Scattering_Study".
+            hfss_design_name (str): Name of the HFSS design. Defaults to "Scattering_Study". If None, an entirely new mesh is generated
             center_frequency (float): Center frequency for the simulation in GHz. Defaults to 5 GHz.
 
 
@@ -138,7 +138,8 @@ class ScatteringParametersStudy:
             setup.delete_sweep("Sweep")
         except:
             pass
-        setup.setup_link(eigenmode_setup)
+        if eigenmode_setup is not None:
+            setup.setup_link(eigenmode_setup)
         scattering_analysis_renderer.add_sweep(
             setup_name="Setup_QDO",
             name="Sweep",
