@@ -46,7 +46,7 @@ class ScatteringParametersStudy:
         counts: Optional[int] = 25000,
         component_of_interest: str = None,
         bandwidth: float = 1,
-        passes: int = 35,
+        passes: int = 10,
     ):
 
         self.qiskit_component_names = qiskit_component_names

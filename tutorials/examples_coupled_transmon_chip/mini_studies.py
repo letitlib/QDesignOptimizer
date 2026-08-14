@@ -141,8 +141,8 @@ def get_mini_study_res_feedline(group: int):
     resonator_decay_study = ResonatorDecayIntoWaveguideStudy(
         mode=resonator,
         mode_freq_GHz=pt.PARAM_TARGETS[param(resonator, FREQ)] / 1e9,
-        resonator_name=f"second_cpw_name_tee{group}",  # These names must be found from the model list in Ansys
-        waveguide_name=f"prime_cpw_name_tee{group}",
+        resonator_name=f"second_cpw_name_tee_{group}_",  # These names must be found from the model list in Ansys
+        waveguide_name=f"prime_cpw_name_tee_{group}_",
         impedance_ohm=50,
         resonator_type="lambda_4",
         qiskit_component_names=qiskit_component_names,
@@ -153,7 +153,7 @@ def get_mini_study_res_feedline(group: int):
             (n.name_tee(group), "prime_start"),
         ],
         nbr_passes=8,
-        render_qiskit_metal_kwargs={"capacitance": True},
+        render_qiskit_metal_kwargs={"capacitance_or_surface_p_ratio": True},
     )
     return MiniStudy(
         qiskit_component_names=qiskit_component_names,
@@ -214,6 +214,8 @@ def get_mini_study_qb_res_with_scattering_parameters_study(group: int):
             (n.name_tee(group), "prime_start", 50),
         ],
         component_of_interest=n.RESONATOR_1,
+        passes=10,
+        bandwidth=0.1,
     )
     return MiniStudy(
         qiskit_component_names=[
