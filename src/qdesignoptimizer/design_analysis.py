@@ -790,7 +790,7 @@ class DesignAnalysis:
                 )
                 scattering_study.plot(
                     title=f"Scattering study for {scattering_study.component_of_interest}",
-                    Sij=["S21"],
+                    Sij=[],
                 )
             # self.setup_eigenmode()
         #######################  scattering studies
